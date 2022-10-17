@@ -2,23 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Form, Button, Alert } from "react-bootstrap";
 import uuid from "react-uuid";
 import Notes from "./Notes";
-
-const createRequest = async ({ id, payload, method }) => {
-  const baseURL = "http://localhost:7777/notes/";
-  const requestURL = method === "delete" ? baseURL + `${id}` : baseURL;
-  const request = await fetch(requestURL, {
-    method: method,
-    header: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!request.ok) {
-    throw new Error("Что-то пошло не так...");
-  }
-  const response = await request.json();
-  return response;
-};
+import createRequest from "../api/createRequest";
 
 export default function Crud() {
   const [note, setNote] = useState();
@@ -29,27 +13,38 @@ export default function Crud() {
     setNote(value);
   };
 
-  const handleSubmit = (evt) => {
+  const handleSubmit = async (evt) => {
     evt.preventDefault();
-    const data = {
+    const payload = {
       id: uuid(),
       time: new Date().toLocaleTimeString(),
       note: evt.target.note.value,
     };
 
+    try {
+      await createRequest({ payload, method: "post" });
+      const response = await createRequest({ method: "get" });
+      console.log(response);
+      setNotes([...response]);
+    } catch (err) {
+      return <p>Error: {err}</p>;
+    }
+
     fetch("http://localhost:7777/notes", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
       headers: {
         "Content-Type": "application/json",
       },
     });
-    setNote("");
-    const fetchData = async () => {
-      const response = await createRequest({ method: "get" });
-      setNotes([...response]);
-    };
-    fetchData();
+
+    // const fetchData = async () => {
+    //   const response = await createRequest({ method: "get" });
+    //   setNotes([...response]);
+    // };
+
+    // setNote("");
+    // fetchData();
   };
 
   useEffect(() => {
