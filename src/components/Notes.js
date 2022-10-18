@@ -2,8 +2,8 @@ import React from "react";
 import { Alert } from "react-bootstrap";
 
 export default function(props) {
-  const handleDelete = (id) => {
-    props.handleDelete(id);
+  const onDelete = (id) => {
+    props.onDelete(id);
   };
 
   return (
@@ -12,7 +12,7 @@ export default function(props) {
         <Alert key={o.id} id={o.id}>
           <Alert.Heading>
             {o.time}{" "}
-            <span className="pointer" onClick={() => handleDelete(o.id)}>
+            <span className="pointer" onClick={() => onDelete(o.id)}>
               [X]
             </span>
           </Alert.Heading>

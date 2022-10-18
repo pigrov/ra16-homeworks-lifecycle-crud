@@ -1,22 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { Container, Form, Button, Alert } from "react-bootstrap";
+import { Container, Alert } from "react-bootstrap";
 import Notes from "./Notes";
+import Form from "./Form";
 import createRequest from "../api/createRequest";
 
 export default function Crud() {
-  const [text, setText] = useState();
   const [notes, setNotes] = useState([]);
+  const [text, setText] = useState();
 
-  const onChange = (evt) => {
-    const { value } = evt.target;
+  const onChange = (value) => {
     setText(value);
   };
 
-  const onSubmit = async (evt) => {
-    evt.preventDefault();
+  const onSubmit = async (value) => {
+    const data = await createRequest({ method: "get" });
+    const existingNote = data.find((o) => o.note === value);
+    if (existingNote) {
+      return;
+    }
+
     const note = {
       time: new Date().toLocaleTimeString(),
-      note: evt.target.note.value,
+      note: value,
     };
     setText("");
 
@@ -25,7 +30,7 @@ export default function Crud() {
     setNotes([...response]);
   };
 
-  const handleDelete = async (id) => {
+  const onDelete = async (id) => {
     await createRequest({ id, method: "delete" });
     const response = await createRequest({ method: "get" });
     setNotes([...response]);
@@ -43,24 +48,9 @@ export default function Crud() {
     <Container>
       <Alert variant={"success"}>ALL SUPER NOTES</Alert>
       <hr />
-      <Notes handleDelete={handleDelete} notes={notes} />
+      <Notes onDelete={onDelete} notes={notes} />
       <hr />
-      <Form onSubmit={onSubmit}>
-        <Form.Group className="mb-3" controlId="note">
-          <Form.Label>Text your new note:</Form.Label>
-          <Form.Control
-            required
-            as="textarea"
-            rows={3}
-            onChange={onChange}
-            value={text}
-          />
-          <hr />
-          <Button variant="primary" type="submit">
-            Submit
-          </Button>
-        </Form.Group>
-      </Form>
+      <Form onSubmit={onSubmit} onChange={onChange} text={text} />
     </Container>
   );
 }
