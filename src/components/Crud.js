@@ -1,50 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { Container, Form, Button, Alert } from "react-bootstrap";
-import uuid from "react-uuid";
 import Notes from "./Notes";
 import createRequest from "../api/createRequest";
 
 export default function Crud() {
-  const [note, setNote] = useState();
+  const [text, setText] = useState();
   const [notes, setNotes] = useState([]);
 
-  const handleСhange = (evt) => {
+  const onChange = (evt) => {
     const { value } = evt.target;
-    setNote(value);
+    setText(value);
   };
 
-  const handleSubmit = async (evt) => {
+  const onSubmit = async (evt) => {
     evt.preventDefault();
-    const payload = {
-      id: uuid(),
+    const note = {
       time: new Date().toLocaleTimeString(),
       note: evt.target.note.value,
     };
+    setText("");
 
-    try {
-      await createRequest({ payload, method: "post" });
-      const response = await createRequest({ method: "get" });
-      console.log(response);
-      setNotes([...response]);
-    } catch (err) {
-      return <p>Error: {err}</p>;
-    }
+    await createRequest({ note, method: "post" });
+    const response = await createRequest({ method: "get" });
+    setNotes([...response]);
+  };
 
-    fetch("http://localhost:7777/notes", {
-      method: "POST",
-      body: JSON.stringify(payload),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    // const fetchData = async () => {
-    //   const response = await createRequest({ method: "get" });
-    //   setNotes([...response]);
-    // };
-
-    // setNote("");
-    // fetchData();
+  const handleDelete = async (id) => {
+    await createRequest({ id, method: "delete" });
+    const response = await createRequest({ method: "get" });
+    setNotes([...response]);
   };
 
   useEffect(() => {
@@ -59,16 +43,17 @@ export default function Crud() {
     <Container>
       <Alert variant={"success"}>ALL SUPER NOTES</Alert>
       <hr />
-      <Notes notes={notes} />
+      <Notes handleDelete={handleDelete} notes={notes} />
       <hr />
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={onSubmit}>
         <Form.Group className="mb-3" controlId="note">
           <Form.Label>Text your new note:</Form.Label>
           <Form.Control
+            required
             as="textarea"
             rows={3}
-            onChange={handleСhange}
-            value={note}
+            onChange={onChange}
+            value={text}
           />
           <hr />
           <Button variant="primary" type="submit">
